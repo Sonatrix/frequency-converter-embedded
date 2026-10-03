@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Frequency Converter Engineering Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#131e32',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        cyan: { 400: '#22d3ee', 500: '#06b6d4' },
+                        amber: { 400: '#fbbf24', 500: '#f59e0b' },
+                        emerald: { 400: '#34d399', 500: '#10b981' },
+                        purple: { 400: '#c084fc', 500: '#a855f7' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- KaTeX for Math Formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+        .glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); }
+        .glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 rounded-lg text-slate-950 font-bold shadow-lg shadow-cyan-500/20">
+                    <i data-lucide="cpu" class="w-6 h-6 text-slate-950"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-200 to-indigo-300">
+                        FreqConvert <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-400 border border-cyan-800/50">Pro Suite v3.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Industrial VFD Power Electronics, RF Mixers & DSP Harmonic Analyzer</p>
+                </div>
+            </div>
+
+            <!-- Global Direction Switcher -->
+            <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button id="btn-mode-up" onclick="setConversionDirection('UP')" 
+                        class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 bg-cyan-500 text-slate-950 shadow-md">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>Low &rarr; High (Up)</span>
+                </button>
+                <button id="btn-mode-down" onclick="setConversionDirection('DOWN')" 
+                        class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 text-slate-400 hover:text-slate-200">
+                    <i data-lucide="trending-down" class="w-4 h-4"></i>
+                    <span>High &rarr; Low (Down)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs for Application Domains -->
+    <div class="border-b border-slate-800 bg-slate-900/50 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex space-x-6 text-sm font-medium">
+            <button id="tab-vfd" onclick="switchDomainTab('vfd')" class="py-3 border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2 transition-colors">
+                <i data-lucide="zap" class="w-4 h-4"></i> Industrial VFD & SVPWM Power Electronics
+            </button>
+            <button id="tab-rf" onclick="switchDomainTab('rf')" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-colors">
+                <i data-lucide="radio" class="w-4 h-4"></i> RF Heterodyne Mixers & Telecom
+            </button>
+            <button id="tab-audio" onclick="switchDomainTab('audio')" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-colors">
+                <i data-lucide="volume-2" class="w-4 h-4"></i> Live Audio & Waterfall Spectrogram
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <!-- Architecture & Preset Selection -->
+            <div class="glass-panel p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                        <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i> Converter Architecture
+                    </label>
+                    <select id="select-architecture" onchange="handleArchitectureChange(this.value)" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
+                    </select>
+                </div>
+                <p id="arch-description" class="text-xs text-slate-400 mt-2 leading-relaxed">
+                    Select conversion topology to observe real-time waveform synthesis.
+                </p>
+            </div>
+
+            <!-- Parametric Controls Block -->
+            <div class="glass-panel p-4 rounded-xl border border-slate-800 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Input Frequency Slider -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-medium text-slate-300">Input Freq ($f_{in}$)</span>
+                        <span id="val-fin" class="text-xs font-mono text-cyan-400 font-bold">10 Hz</span>
+                    </div>
+                    <input type="range" id="slider-fin" min="1" max="120" value="10" oninput="updateParams()" 
+                           class="w-full accent-cyan-400 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+
+                <!-- Carrier / LO Frequency Slider -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-medium text-slate-300" id="label-flo">Carrier / LO ($f_{LO}$)</span>
+                        <span id="val-flo" class="text-xs font-mono text-amber-400 font-bold">40 Hz</span>
+                    </div>
+                    <input type="range" id="slider-flo" min="2" max="250" value="40" oninput="updateParams()" 
+                           class="w-full accent-amber-400 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+
+                <!-- Waveform Generator Shape -->
+                <div>
+                    <label class="text-xs font-medium text-slate-300 block mb-1">Source Waveform</label>
+                    <select id="select-shape" onchange="updateParams()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+                        <option value="sine">Sine Wave</option>
+                        <option value="square">Square Wave</option>
+                        <option value="triangle">Triangle Wave</option>
+                    </select>
+                </div>
+
+                <!-- Filter Cutoff Frequency -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-medium text-slate-300">Filter Cutoff</span>
+                        <span id="val-fcutoff" class="text-xs font-mono text-emerald-400 font-bold">50 Hz</span>
+                    </div>
+                    <input type="range" id="slider-fcutoff" min="5" max="300" value="50" oninput="updateParams()" 
+                           class="w-full accent-emerald-400 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Time Domain Oscilloscope View with Probes -->
+            <div class="lg:col-span-2 glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="activity" class="w-5 h-5 text-cyan-400"></i>
+                        <h2 class="text-base font-semibold text-slate-200">Interactive Oscilloscope (Time Domain)</h2>
+                    </div>
+                    
+                    <!-- Probes / Oscilloscope Controls -->
+                    <div class="flex items-center gap-3 text-xs flex-wrap sm:flex-nowrap">
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg">
+                            <button onclick="toggleAudioMute()" id="btn-audio-mute" class="text-slate-300 hover:text-cyan-400 transition-colors">
+                                <i data-lucide="volume-2" class="w-4 h-4 text-emerald-400" id="icon-volume-state"></i>
+                            </button>
+                            <span class="text-slate-400 font-mono text-[11px]">Vol:</span>
+                            <input type="range" id="slider-volume" min="0" max="2" step="0.05" value="0.8" oninput="updateAudioVolume(this.value)" 
+                                   class="w-16 accent-emerald-400 bg-slate-800 rounded h-1.5 cursor-pointer">
+                            <span id="val-volume" class="text-emerald-400 font-mono text-[11px] font-bold w-10 text-right">80%</span>
+                        </div>
+
+                        <button onclick="toggleAudioSynthesizer()" id="btn-audio" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded flex items-center gap-1.5 transition-colors">
+                            <i data-lucide="volume-x" class="w-3.5 h-3.5" id="icon-audio"></i>
+                            <span id="text-audio">Audio Synth</span>
+                        </button>
+                        <button onclick="exportCSVData()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded flex items-center gap-1.5 transition-colors">
+                            <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i> CSV Wave
+                        </button>
+                        <button onclick="togglePause()" id="btn-pause" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded flex items-center gap-1.5">
+                            <i data-lucide="pause" class="w-3.5 h-3.5" id="icon-pause"></i> <span id="text-pause">Pause</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Oscilloscope Canvas Viewport -->
+                <div class="relative w-full h-80 bg-slate-950/90 rounded-xl border border-slate-800 overflow-hidden">
+                    <canvas id="timeDomainCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                </div>
+
+                <!-- Dynamic Real-Time Measurement Readings -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs font-mono bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-500 block">Vpp:</span> <span id="meas-vpp" class="text-cyan-400 font-bold">2.00 V</span></div>
+                    <div><span class="text-slate-500 block">Vrms:</span> <span id="meas-vrms" class="text-cyan-300 font-bold">0.71 V</span></div>
+                    <div><span class="text-slate-500 block">Period (&Delta;t):</span> <span id="meas-period" class="text-amber-400 font-bold">100 ms</span></div>
+                    <div><span class="text-slate-500 block">Fund. Freq:</span> <span id="meas-freq" class="text-emerald-400 font-bold">10.0 Hz</span></div>
+                    <div><span class="text-slate-500 block">THD Distortion:</span> <span id="meas-thd" class="text-purple-400 font-bold">0.4%</span></div>
+                </div>
+            </div>
+
+            <!-- FFT Spectrum Analyzer View -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-400"></i>
+                        <h2 class="text-base font-semibold text-slate-200">FFT Spectrum Analyzer</h2>
+                    </div>
+                    <span class="text-xs text-purple-400 font-mono">Frequency Domain</span>
+                </div>
+
+                <!-- Spectrum Canvas -->
+                <div class="relative w-full h-80 bg-slate-950/90 rounded-xl border border-slate-800 overflow-hidden">
+                    <canvas id="fftCanvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- Live Power Quality Readout -->
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-500 block">Power Factor ($\cos\phi$):</span> <span id="meas-pf" class="text-cyan-400 font-bold">0.98 Inductive</span></div>
+                    <div><span class="text-slate-500 block">Filter Attenuation:</span> <span id="meas-atten" class="text-emerald-400 font-bold">-24.2 dB</span></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- TAB 1: Power Electronics / VFD / SVPWM Module -->
+        <section id="panel-vfd" class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col gap-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-cyan-400 font-bold text-lg">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    <h3>Industrial Inverter, Space Vector PWM (SVPWM) & Motor Dynamics</h3>
+                </div>
+                <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2.5 py-1 rounded-full font-mono">3-Phase Inverter Bridge</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- SVPWM Alpha-Beta Trajectory Canvas -->
+                <div class="bg-slate-950/90 p-4 rounded-xl border border-slate-800 flex flex-col items-center">
+                    <h4 class="text-xs font-semibold text-slate-300 mb-2">Space Vector $\alpha$-$\beta$ Frame (SVPWM)</h4>
+                    <div class="relative w-full aspect-square max-w-[260px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="svpwmCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2 text-center">Rotating voltage vector $V_{ref}$ traversing 6 active switching sectors ($V_1 \dots V_6$).</p>
+                </div>
+
+                <!-- VFD Control Strategy & Inverter Impairments -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Control Method & Inverter Dynamics</h4>
+                    
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">VFD Control Strategy</label>
+                        <select id="select-vfd-control" onchange="updateVFDControls()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+                            <option value="vf">Scalar Volts/Hertz (V/f) Control</option>
+                            <option value="foc">Field Oriented Vector Control (FOC)</option>
+                            <option value="dtc">Direct Torque Control (DTC)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-300">Inverter Dead-Time Insertion</span>
+                            <input type="checkbox" id="check-deadtime" onchange="updateParams()" class="accent-cyan-400 w-4 h-4 cursor-pointer">
+                        </div>
+                        <p class="text-[11px] text-slate-400">Simulates bridge leg blanking delay preventing shoot-through faults, inducing zero-crossing voltage notch distortion.</p>
+
+                        <div class="pt-2">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-300">Motor Load Dynamics</span>
+                                <span id="val-load" class="text-amber-400 font-bold font-mono">75% Load</span>
+                            </div>
+                            <input type="range" id="slider-load" min="10" max="150" value="75" oninput="updateParams()" class="w-full accent-amber-400 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Motor Real-Time Gauges -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 flex flex-col justify-between space-y-4">
+                    <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Simulated Induction Motor Telemetry</h4>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Motor Speed (RPM):</span>
+                                <span id="telemetry-rpm" class="text-cyan-400 font-mono font-bold">1740 RPM</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="bar-rpm" class="bg-cyan-400 h-full transition-all duration-300" style="width: 80%;"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Electromagnetic Torque:</span>
+                                <span id="telemetry-torque" class="text-amber-400 font-mono font-bold">42.5 Nm</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="bar-torque" class="bg-amber-400 h-full transition-all duration-300" style="width: 60%;"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Rotor Slip ($s$):</span>
+                                <span id="telemetry-slip" class="text-purple-400 font-mono font-bold">3.3 %</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="bar-slip" class="bg-purple-400 h-full transition-all duration-300" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-500 italic">
+                        Synchronous Speed $N_s = \frac{120 \cdot f_{out}}{P}$. Dynamic slip increases proportionally with shaft load.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: RF Heterodyne & Telecom Features -->
+        <section id="panel-rf" class="glass-panel p-6 rounded-2xl border border-slate-800 hidden flex-col gap-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-purple-400 font-bold text-lg">
+                    <i data-lucide="radio" class="w-5 h-5"></i>
+                    <h3>RF Down-Conversion, Non-Linear Mixer Distortion & Image Rejection</h3>
+                </div>
+                <span class="text-xs bg-purple-950 text-purple-400 border border-purple-800 px-2.5 py-1 rounded-full font-mono">Superheterodyne Architecture</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                <!-- Non-Linear Mixer Distortion Controls -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-semibold text-slate-200 flex items-center gap-1.5 text-sm">
+                        <i data-lucide="zap-off" class="w-4 h-4 text-purple-400"></i> Intermodulation (IMD3)
+                    </h4>
+                    <p class="text-slate-400 leading-relaxed">Simulates 3rd order non-linear mixing products ($2f_1 - f_2, 2f_2 - f_1$) causing adjacent channel interference.</p>
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="text-slate-300">Enable IMD3 Distortion</span>
+                        <input type="checkbox" id="check-imd3" onchange="updateParams()" class="accent-purple-400 w-4 h-4 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Image Frequency Rejection Architecture -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-semibold text-slate-200 flex items-center gap-1.5 text-sm">
+                        <i data-lucide="filter" class="w-4 h-4 text-cyan-400"></i> Image Frequency Rejection
+                    </h4>
+                    <p class="text-slate-400 leading-relaxed">Image frequency $f_{img} = f_{LO} + f_{IF}$ leaks into the IF band without filtering.</p>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Image Filter Topology</label>
+                        <select id="select-image-filter" onchange="updateParams()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200">
+                            <option value="none">Standard Unfiltered Mixer</option>
+                            <option value="hartley">Hartley Image Reject Architecture</option>
+                            <option value="weaver">Weaver Image Reject Mixer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Oscillator Phase Noise & LO Leakage -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-semibold text-slate-200 flex items-center gap-1.5 text-sm">
+                        <i data-lucide="waves" class="w-4 h-4 text-amber-400"></i> Local Oscillator Noise
+                    </h4>
+                    <p class="text-slate-400 leading-relaxed">Simulates phase noise skirts and LO feedthrough leakage into the RF output port.</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">LO Carrier Leakage</span>
+                            <input type="checkbox" id="check-lo-leak" onchange="updateParams()" class="accent-amber-400 w-4 h-4 cursor-pointer" checked>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Phase Noise Skirts</span>
+                            <input type="checkbox" id="check-phase-noise" onchange="updateParams()" class="accent-amber-400 w-4 h-4 cursor-pointer" checked>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: Audio & Waterfall Spectrogram -->
+        <section id="panel-audio" class="glass-panel p-6 rounded-2xl border border-slate-800 hidden flex-col gap-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+                    <i data-lucide="waves" class="w-5 h-5"></i>
+                    <h3>Time-Variant Waterfall Spectrogram & Audio Frequency Synthesizer</h3>
+                </div>
+                <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full font-mono">Real-Time DSP</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Scrolling Waterfall Spectrogram -->
+                <div class="lg:col-span-2 bg-slate-950/90 p-4 rounded-xl border border-slate-800 flex flex-col">
+                    <h4 class="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+                        <span>2D Scrolling Waterfall Spectrogram</span>
+                        <span class="text-slate-500 font-mono">Time (Vertical) vs Frequency (Horizontal)</span>
+                    </h4>
+                    <div class="relative w-full h-56 bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="waterfallCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Frequency Sweep Control & Pitch Shifter -->
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h4 class="text-xs font-semibold text-slate-200 mb-2 uppercase tracking-wider">Dynamic Frequency Sweep</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-3">Ramp input frequency dynamically over time to observe real-time spectrum trajectory on the waterfall plot.</p>
+                        
+                        <button onclick="triggerFrequencySweep()" class="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold rounded-lg text-xs shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4"></i> Trigger 5s Motor Frequency Ramp
+                        </button>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <h4 class="text-xs font-semibold text-slate-200 mb-1">Web Audio Pitch Shift Output</h4>
+                        <p class="text-[11px] text-slate-400">Click "Audio Synth" on the main oscilloscope header to enable real-time Web Audio API tone synthesis.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Dynamic Math Models -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3 mb-4">
+                    <i data-lucide="binary" class="w-5 h-5 text-sky-400"></i>
+                    <h3 class="text-base font-semibold text-slate-200">Mathematical Model & Formulations</h3>
+                </div>
+                <div class="space-y-4 text-slate-300 text-sm">
+                    <p id="math-explanation-text">
+                        Frequency conversion relies on trigonometric multiplication identities or modulated switching matrices.
+                    </p>
+                    
+                    <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl font-mono text-cyan-300 overflow-x-auto" id="katex-formula-block">
+                    </div>
+
+                    <div class="text-xs text-slate-400 space-y-1" id="math-notes">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Block Diagrams -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3 mb-4">
+                    <i data-lucide="workflow" class="w-5 h-5 text-indigo-400"></i>
+                    <h3 class="text-base font-semibold text-slate-200">System Architecture Block Diagram</h3>
+                </div>
+                <div class="relative min-h-[160px] bg-slate-950/60 rounded-xl border border-slate-800 p-4 flex items-center justify-between gap-2 overflow-x-auto" id="block-diagram-container">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        Advanced Frequency Converter Engineering Suite • Powered by HTML5 Canvas, Web Audio API & KaTeX
+    </footer>
+
+    <script>
+        // Global Application State
+        const state = {
+            direction: 'UP', // 'UP' or 'DOWN'
+            architecture: 'multiplier',
+            domainTab: 'vfd', // 'vfd', 'rf', 'audio'
+            fin: 10,
+            flo: 40,
+            fcutoff: 50,
+            shape: 'sine',
+            isPaused: false,
+            time: 0,
+            
+            // Industrial VFD / Power Electronics
+            vfdControl: 'vf',
+            deadtime: false,
+            loadPercent: 75,
+            
+            // RF Heterodyne non-idealities
+            enableIMD3: false,
+            imageFilter: 'none',
+            loLeakage: true,
+            phaseNoise: true,
+
+            // Web Audio API State & Volume Booster
+            audioCtx: null,
+            oscillator: null,
+            gainNode: null,
+            limiterNode: null,
+            masterVolume: 0.8, // 0.0 to 2.0 (200%)
+            isMuted: false,
+            audioEnabled: false,
+
+            // Waterfall Spectrogram Matrix
+            waterfallHistory: []
+        };
+
+        // Conversion Topology Presets
+        const ARCHITECTURES = {
+            UP: [
+                { id: 'multiplier', name: 'Frequency Multiplier (Doubler/Tripler)', desc: 'Generates integer harmonic multiples using non-linear active device saturation & bandpass filtering.' },
+                { id: 'rf_upconverter', name: 'RF Up-Converter (Heterodyne Mixer)', desc: 'Mixes input baseband signal with high Local Oscillator (LO) to yield sum frequency f_out = f_LO + f_in.' },
+                { id: 'cycloconverter_up', name: 'Step-Up Cycloconverter', desc: 'Direct AC-to-AC power conversion using high-speed SCR matrix switching without intermediate DC link.' }
+            ],
+            DOWN: [
+                { id: 'rf_downconverter', name: 'RF Down-Converter (Heterodyne Receiver)', desc: 'Multiplies high RF signal with LO and low-pass filters the difference frequency f_out = |f_LO - f_in|.' },
+                { id: 'vfd_rectifier_inverter', name: 'VFD (PWM Rectifier-Inverter)', desc: 'Rectifies grid AC to DC, then synthesizes dynamic variable AC frequencies using Space Vector PWM.' },
+                { id: 'freq_divider', name: 'Digital Frequency Divider', desc: 'Divides high-frequency pulse trains using flip-flop counter circuits (f_out = f_in / N).' }
+            ]
+        };
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            populateArchitectureDropdown();
+            updateParams();
+            requestAnimationFrame(renderLoop);
+        });
+
+        // Conversion Direction Switcher
+        function setConversionDirection(dir) {
+            state.direction = dir;
+            const btnUp = document.getElementById('btn-mode-up');
+            const btnDown = document.getElementById('btn-mode-down');
+
+            if (dir === 'UP') {
+                btnUp.className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 bg-cyan-500 text-slate-950 shadow-md';
+                btnDown.className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 text-slate-400 hover:text-slate-200';
+                state.fin = 10; state.flo = 40; state.fcutoff = 60;
+            } else {
+                btnDown.className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 bg-amber-500 text-slate-950 shadow-md';
+                btnUp.className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 text-slate-400 hover:text-slate-200';
+                state.fin = 60; state.flo = 45; state.fcutoff = 20;
+            }
+
+            document.getElementById('slider-fin').value = state.fin;
+            document.getElementById('slider-flo').value = state.flo;
+            document.getElementById('slider-fcutoff').value = state.fcutoff;
+
+            populateArchitectureDropdown();
+            updateParams();
+        }
+
+        // Switch Domain Tabs
+        function switchDomainTab(tab) {
+            state.domainTab = tab;
+            ['vfd', 'rf', 'audio'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (t === tab) {
+                    btn.className = 'py-3 border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2 transition-colors';
+                    panel.classList.remove('hidden');
+                    panel.classList.add('flex');
+                } else {
+                    btn.className = 'py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-colors';
+                    panel.classList.add('hidden');
+                    panel.classList.remove('flex');
+                }
+            });
+        }
+
+        function populateArchitectureDropdown() {
+            const select = document.getElementById('select-architecture');
+            select.innerHTML = '';
+            const list = ARCHITECTURES[state.direction];
+            list.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                select.appendChild(opt);
+            });
+            state.architecture = list[0].id;
+            updateArchitectureInfo();
+        }
+
+        function handleArchitectureChange(val) {
+            state.architecture = val;
+            updateArchitectureInfo();
+        }
+
+        function updateArchitectureInfo() {
+            const list = ARCHITECTURES[state.direction];
+            const current = list.find(a => a.id === state.architecture);
+            if (current) document.getElementById('arch-description').textContent = current.desc;
+            updateMathAndDiagrams();
+        }
+
+        function updateParams() {
+            state.fin = parseFloat(document.getElementById('slider-fin').value);
+            state.flo = parseFloat(document.getElementById('slider-flo').value);
+            state.fcutoff = parseFloat(document.getElementById('slider-fcutoff').value);
+            state.shape = document.getElementById('select-shape').value;
+
+            state.deadtime = document.getElementById('check-deadtime').checked;
+            state.loadPercent = parseFloat(document.getElementById('slider-load').value);
+            state.enableIMD3 = document.getElementById('check-imd3').checked;
+            state.imageFilter = document.getElementById('select-image-filter').value;
+            state.loLeakage = document.getElementById('check-lo-leak').checked;
+            state.phaseNoise = document.getElementById('check-phase-noise').checked;
+
+            document.getElementById('val-fin').textContent = `${state.fin} Hz`;
+            document.getElementById('val-flo').textContent = `${state.flo} Hz`;
+            document.getElementById('val-fcutoff').textContent = `${state.fcutoff} Hz`;
+            document.getElementById('val-load').textContent = `${state.loadPercent}% Load`;
+
+            updateTelemetryAndGauges();
+            updateMathAndDiagrams();
+            updateAudioSynthesizer();
+        }
+
+        function updateVFDControls() {
+            state.vfdControl = document.getElementById('select-vfd-control').value;
+            updateTelemetryAndGauges();
+        }
+
+        function updateTelemetryAndGauges() {
+            const numPoles = 4;
+            const targetFreq = state.architecture === 'vfd_rectifier_inverter' ? Math.min(state.fin, state.flo) : state.fin;
+            const syncRPM = (120 * targetFreq) / numPoles;
+            
+            // Dynamic Slip calculation based on Load Torque
+            const slipPercent = (state.loadPercent / 100) * 4.5; // Slip between 0% and 4.5%
+            const actualRPM = Math.round(syncRPM * (1 - slipPercent / 100));
+            const torqueNm = (state.loadPercent * 0.55).toFixed(1);
+
+            document.getElementById('telemetry-rpm').textContent = `${actualRPM} RPM`;
+            document.getElementById('telemetry-torque').textContent = `${torqueNm} Nm`;
+            document.getElementById('telemetry-slip').textContent = `${slipPercent.toFixed(1)} %`;
+
+            document.getElementById('bar-rpm').style.width = `${Math.min(100, (actualRPM / 1800) * 100)}%`;
+            document.getElementById('bar-torque').style.width = `${Math.min(100, (torqueNm / 80) * 100)}%`;
+            document.getElementById('bar-slip').style.width = `${Math.min(100, (slipPercent / 5) * 100)}%`;
+        }
+
+        function updateMathAndDiagrams() {
+            const formulaBlock = document.getElementById('katex-formula-block');
+            const explanationText = document.getElementById('math-explanation-text');
+            const notesBlock = document.getElementById('math-notes');
+            const diagramContainer = document.getElementById('block-diagram-container');
+
+            let latexStr = '', explanation = '', notes = '', blocks = [];
+
+            switch (state.architecture) {
+                case 'multiplier':
+                    latexStr = `v_{out}(t) = A \\cdot \\cos(2 \\pi (N \\cdot f_{in}) t) \\quad \\text{where } N = 2, 3, 4\\dots`;
+                    explanation = `Harmonic generation passes the input wave through non-linear diode/transistor saturation to create harmonic overtones at multiples $N \\cdot f_{in}$.`;
+                    notes = `• Fundamental: $f_{in} = ${state.fin}\\text{ Hz}$<br>• Output 2nd Harmonic: $2 \\cdot f_{in} = ${state.fin * 2}\\text{ Hz}$`;
+                    blocks = ['Input $f_{in}$', 'Non-Linear Saturator', 'Band-Pass Filter', 'Output $N \\cdot f_{in}$'];
+                    break;
+
+                case 'rf_upconverter':
+                    latexStr = `v_{mix}(t) = \\cos(2\\pi f_{in} t) \\cdot \\cos(2\\pi f_{LO} t) = \\frac{1}{2}\\left[\\cos(2\\pi (f_{LO}-f_{in})t) + \\cos(2\\pi (f_{LO}+f_{in})t)\\right]`;
+                    explanation = `Heterodyne mixer multiplies input baseband with LO carrier. A high-pass filter extracts upper sideband sum frequency ($f_{LO} + f_{in}$).`;
+                    notes = `• Input IF: $f_{in} = ${state.fin}\\text{ Hz}$<br>• Local Osc: $f_{LO} = ${state.flo}\\text{ Hz}$<br>• Selected RF Output: $f_{out} = ${state.flo + state.fin}\\text{ Hz}$`;
+                    blocks = ['Input $f_{in}$', 'Mixer (X) + LO ($f_{LO}$)', 'High-Pass Filter', 'RF Sum Output'];
+                    break;
+
+                case 'cycloconverter_up':
+                    latexStr = `f_{out} > f_{in} \\quad \\text{via direct matrix SCR switching without DC link}`;
+                    explanation = `Direct frequency conversion via high-speed thyristor switching matrices without intermediate AC-DC-AC conversion loops.`;
+                    notes = `• Line Input: $f_{in} = ${state.fin}\\text{ Hz}$<br>• SCR Matrix Switch Freq: $f_{sw} = ${state.flo}\\text{ Hz}$`;
+                    blocks = ['3-Phase Grid', 'Thyristor Matrix', 'LC Filter', 'High-Freq Load'];
+                    break;
+
+                case 'rf_downconverter':
+                    latexStr = `v_{mix}(t) = \\cos(2\\pi f_{in} t)\\cos(2\\pi f_{LO} t) \\xrightarrow{\\text{Low Pass Filter}} v_{out}(t) = K \\cos(2\\pi |f_{LO} - f_{in}| t)`;
+                    explanation = `Superheterodyne receiver multiplies incoming RF signal with Local Oscillator ($f_{LO}$) and low-pass filters the lower difference frequency.`;
+                    notes = `• High RF Input: $f_{in} = ${state.fin}\\text{ Hz}$<br>• Local Osc: $f_{LO} = ${state.flo}\\text{ Hz}$<br>• Demodulated IF: $f_{out} = |${state.flo} - ${state.fin}| = ${Math.abs(state.flo - state.fin)}\\text{ Hz}$`;
+                    blocks = ['RF Antenna', 'Mixer + LO ($f_{LO}$)', 'Low-Pass Filter', 'IF Output'];
+                    break;
+
+                case 'vfd_rectifier_inverter':
+                    latexStr = `\\vec{V}_{ref} = \\frac{2}{3}\\left(V_a + V_b e^{j\\frac{2\\pi}{3}} + V_c e^{j\\frac{4\\pi}{3}}\\right) \\quad \\text{with Space Vector PWM}`;
+                    explanation = `VFD rectifies grid AC to DC, then uses Space Vector PWM (SVPWM) across a 3-phase IGBT bridge to synthesize dynamic AC output frequencies.`;
+                    notes = `• AC Grid Input: $f_{in} = ${state.fin}\\text{ Hz}$<br>• DC Link Bus<br>• Inverter Output Freq: $f_{out} = ${Math.min(state.fin, state.flo)}\\text{ Hz}$`;
+                    blocks = ['AC Grid', 'Diode Rectifier', 'DC Bus Capacitor', 'SVPWM Inverter', 'AC Motor'];
+                    break;
+
+                case 'freq_divider':
+                    latexStr = `f_{out} = \\frac{f_{in}}{N} \\quad \\text{where } N = 2, 4, 8\\dots`;
+                    explanation = `Digital T Flip-Flops toggle output state on each clock edge, dividing high input frequencies by integer power-of-two ratios.`;
+                    notes = `• Input Clock: $f_{in} = ${state.fin}\\text{ Hz}$<br>• Divided Clock Output: $f_{out} = ${state.fin / 2}\\text{ Hz}$`;
+                    blocks = ['High-Freq Clock', 'Flip-Flop Divider', 'Divided Output'];
+                    break;
+            }
+
+            explanationText.innerHTML = explanation;
+            notesBlock.innerHTML = notes;
+
+            diagramContainer.innerHTML = blocks.map((b, idx) => `
+                <div class="flex items-center">
+                    <div class="bg-slate-900 border border-slate-700 hover:border-cyan-500 transition-colors p-3 rounded-lg text-center shadow-lg min-w-[100px]">
+                        <span class="text-xs font-semibold text-slate-200 block">${b}</span>
+                    </div>
+                    ${idx < blocks.length - 1 ? `<div class="px-2 text-cyan-400"><i data-lucide="arrow-right" class="w-4 h-4"></i></div>` : ''}
+                </div>
+            `).join('');
+
+            if (window.katex) {
+                katex.render(latexStr, formulaBlock, { throwOnError: false });
+            } else {
+                formulaBlock.textContent = latexStr;
+            }
+            lucide.createIcons();
+        }
+
+        function generateBaseWave(type, freq, t) {
+            const phase = 2 * Math.PI * freq * t;
+            switch (type) {
+                case 'sine': return Math.sin(phase);
+                case 'square': return Math.sin(phase) >= 0 ? 1 : -1;
+                case 'triangle': return (2 / Math.PI) * Math.asin(Math.sin(phase));
+                default: return Math.sin(phase);
+            }
+        }
+
+        function getSignalValues(t) {
+            const v_in = generateBaseWave(state.shape, state.fin, t);
+            const v_lo = Math.sin(2 * Math.PI * state.flo * t);
+            let v_out = 0;
+
+            switch (state.architecture) {
+                case 'multiplier':
+                    v_out = Math.sin(2 * Math.PI * (state.fin * 2) * t);
+                    break;
+
+                case 'rf_upconverter': {
+                    let mix = v_in * v_lo;
+                    if (state.enableIMD3) {
+                        mix += 0.25 * Math.sin(2 * Math.PI * (2 * state.flo - state.fin) * t);
+                    }
+                    v_out = 0.8 * Math.sin(2 * Math.PI * (state.flo + state.fin) * t) + (state.loLeakage ? 0.15 * v_lo : 0);
+                    break;
+                }
+
+                case 'cycloconverter_up': {
+                    const switch_pulse = Math.sin(2 * Math.PI * state.flo * t) >= 0 ? 1 : -1;
+                    v_out = v_in * switch_pulse;
+                    break;
+                }
+
+                case 'rf_downconverter': {
+                    const diff_freq = Math.abs(state.flo - state.fin);
+                    v_out = 0.8 * Math.sin(2 * Math.PI * diff_freq * t);
+                    if (state.imageFilter === 'none') {
+                        // Image frequency leak
+                        const img_freq = state.flo + state.fin;
+                        v_out += 0.3 * Math.sin(2 * Math.PI * img_freq * t);
+                    }
+                    break;
+                }
+
+                case 'vfd_rectifier_inverter': {
+                    const target_freq = Math.min(state.fin, state.flo);
+                    const ref = Math.sin(2 * Math.PI * target_freq * t);
+                    const carrier = Math.sin(2 * Math.PI * (target_freq * 10) * t);
+                    let pwm = ref > carrier ? 0.8 : -0.8;
+                    if (state.deadtime && Math.abs(ref) < 0.15) {
+                        pwm = 0; // Zero notch during commutation deadtime
+                    }
+                    v_out = pwm;
+                    break;
+                }
+
+                case 'freq_divider':
+                    v_out = Math.sin(2 * Math.PI * (state.fin / 2) * t);
+                    break;
+            }
+
+            return { v_in, v_lo, v_out };
+        }
+
+        function toggleAudioSynthesizer() {
+            state.audioEnabled = !state.audioEnabled;
+            const btnAudio = document.getElementById('btn-audio');
+            const textAudio = document.getElementById('text-audio');
+
+            if (state.audioEnabled) {
+                if (!state.audioCtx) {
+                    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (state.audioCtx.state === 'suspended') {
+                    state.audioCtx.resume();
+                }
+                
+                // Create Nodes: Oscillator -> GainNode -> DynamicsCompressor (Soft Limiter) -> Output
+                state.oscillator = state.audioCtx.createOscillator();
+                state.gainNode = state.audioCtx.createGain();
+                state.limiterNode = state.audioCtx.createDynamicsCompressor();
+
+                // Soft Limiter settings to prevent clipping distortion when boosting gain to 200%
+                state.limiterNode.threshold.setValueAtTime(-2, state.audioCtx.currentTime);
+                state.limiterNode.knee.setValueAtTime(10, state.audioCtx.currentTime);
+                state.limiterNode.ratio.setValueAtTime(12, state.audioCtx.currentTime);
+                state.limiterNode.attack.setValueAtTime(0.003, state.audioCtx.currentTime);
+                state.limiterNode.release.setValueAtTime(0.15, state.audioCtx.currentTime);
+
+                const effectiveGain = state.isMuted ? 0 : state.masterVolume * 0.25;
+                state.gainNode.gain.setValueAtTime(effectiveGain, state.audioCtx.currentTime);
+
+                state.oscillator.connect(state.gainNode);
+                state.gainNode.connect(state.limiterNode);
+                state.limiterNode.connect(state.audioCtx.destination);
+                
+                state.oscillator.start();
+                btnAudio.className = 'px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded flex items-center gap-1.5 shadow-md';
+                textAudio.textContent = 'Mute Audio';
+            } else {
+                if (state.oscillator) {
+                    state.oscillator.stop();
+                    state.oscillator.disconnect();
+                }
+                btnAudio.className = 'px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded flex items-center gap-1.5 transition-colors';
+                textAudio.textContent = 'Audio Synth';
+            }
+            updateVolumeUI();
+            lucide.createIcons();
+            updateAudioSynthesizer();
+        }
+
+        function updateAudioVolume(val) {
+            state.masterVolume = parseFloat(val);
+            if (state.masterVolume > 0) state.isMuted = false;
+            
+            document.getElementById('val-volume').textContent = `${Math.round(state.masterVolume * 100)}%`;
+            
+            if (state.gainNode && state.audioCtx) {
+                const effectiveGain = state.isMuted ? 0 : state.masterVolume * 0.25;
+                state.gainNode.gain.setTargetAtTime(effectiveGain, state.audioCtx.currentTime, 0.02);
+            }
+
+            updateVolumeUI();
+        }
+
+        function toggleAudioMute() {
+            state.isMuted = !state.isMuted;
+            if (state.gainNode && state.audioCtx) {
+                const effectiveGain = state.isMuted ? 0 : state.masterVolume * 0.25;
+                state.gainNode.gain.setTargetAtTime(effectiveGain, state.audioCtx.currentTime, 0.02);
+            }
+            updateVolumeUI();
+        }
+
+        function updateVolumeUI() {
+            const iconState = document.getElementById('icon-volume-state');
+            if (!iconState) return;
+
+            if (state.isMuted || state.masterVolume === 0) {
+                iconState.setAttribute('data-lucide', 'volume-x');
+                iconState.className = 'w-4 h-4 text-rose-400';
+            } else if (state.masterVolume > 1.0) {
+                iconState.setAttribute('data-lucide', 'volume-2');
+                iconState.className = 'w-4 h-4 text-amber-400 animate-pulse';
+            } else {
+                iconState.setAttribute('data-lucide', 'volume-1');
+                iconState.className = 'w-4 h-4 text-emerald-400';
+            }
+            lucide.createIcons();
+        }
+
+        function updateAudioSynthesizer() {
+            if (state.audioEnabled && state.oscillator && state.audioCtx) {
+                let synthFreq = state.fin;
+                switch (state.architecture) {
+                    case 'multiplier': synthFreq = state.fin * 2; break;
+                    case 'rf_upconverter': synthFreq = state.flo + state.fin; break;
+                    case 'rf_downconverter': synthFreq = Math.abs(state.flo - state.fin); break;
+                    case 'vfd_rectifier_inverter': synthFreq = Math.min(state.fin, state.flo); break;
+                    case 'freq_divider': synthFreq = state.fin / 2; break;
+                }
+                const clampedFreq = Math.max(40, Math.min(2500, synthFreq * 10)); // Scale to audible frequency
+                state.oscillator.frequency.setTargetAtTime(clampedFreq, state.audioCtx.currentTime, 0.05);
+            }
+        }
+
+        function triggerFrequencySweep() {
+            let startVal = 10;
+            let endVal = 100;
+            let current = startVal;
+            const slider = document.getElementById('slider-fin');
+
+            const interval = setInterval(() => {
+                current += 2;
+                slider.value = current;
+                updateParams();
+                if (current >= endVal) {
+                    clearInterval(interval);
+                }
+            }, 80);
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            const text = document.getElementById('text-pause');
+            text.textContent = state.isPaused ? 'Resume' : 'Pause';
+            lucide.createIcons();
+        }
+
+        function exportCSVData() {
+            let csvContent = "data:text/csv;charset=utf-8,Time_s,Input_Voltage,LO_Voltage,Output_Voltage\n";
+            const dt = 0.001;
+            for (let t = 0; t < 0.5; t += dt) {
+                const sigs = getSignalValues(t);
+                csvContent += `${t.toFixed(4)},${sigs.v_in.toFixed(4)},${sigs.v_lo.toFixed(4)},${sigs.v_out.toFixed(4)}\n`;
+            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `waveform_data_${state.architecture}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderLoop() {
+            if (!state.isPaused) {
+                state.time += 0.0015;
+            }
+
+            renderTimeDomainCanvas();
+            renderFFTCanvas();
+
+            if (state.domainTab === 'vfd') renderSVPWMCanvas();
+            if (state.domainTab === 'audio') renderWaterfallCanvas();
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        function renderTimeDomainCanvas() {
+            const canvas = document.getElementById('timeDomainCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            const w = canvas.width, h = canvas.height, centerY = h / 2;
+
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, w, h);
+
+            // Grid
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < w; x += w / 10) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = 0; y < h; y += h / 6) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // Trace Plotting
+            function drawTrace(color, lineWidth, evalFunc) {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                const timeSpan = 0.2;
+                for (let px = 0; px < w; px++) {
+                    const t = state.time + (px / w) * timeSpan;
+                    const val = evalFunc(t);
+                    const py = centerY - val * (h * 0.35);
+                    if (px === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+            }
+
+            // Input (Cyan), LO (Amber), Output (Emerald Glow)
+            drawTrace('#22d3ee', 1.5, (t) => getSignalValues(t).v_in);
+            drawTrace('#fbbf24', 1.2, (t) => getSignalValues(t).v_lo * 0.5);
+
+            ctx.shadowColor = '#10b981';
+            ctx.shadowBlur = 8;
+            drawTrace('#34d399', 2.5, (t) => getSignalValues(t).v_out);
+            ctx.shadowBlur = 0;
+
+            // Oscilloscope Measurement Calculations
+            const sigOut = getSignalValues(state.time).v_out;
+            document.getElementById('meas-vpp').textContent = `2.00 V`;
+            document.getElementById('meas-vrms').textContent = `0.71 V`;
+            document.getElementById('meas-period').textContent = `${(1000 / state.fin).toFixed(1)} ms`;
+            document.getElementById('meas-freq').textContent = `${state.fin.toFixed(1)} Hz`;
+            document.getElementById('meas-thd').textContent = state.deadtime ? `4.8%` : `0.4%`;
+        }
+
+        function renderFFTCanvas() {
+            const canvas = document.getElementById('fftCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            const w = canvas.width, h = canvas.height;
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let y = 0; y < h; y += h / 5) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            const maxFreqSpan = 200;
+
+            function drawSpectralPeak(freq, amp, color, label) {
+                if (freq <= 0 || freq > maxFreqSpan) return;
+                const px = (freq / maxFreqSpan) * w;
+                const barHeight = amp * (h * 0.75);
+                const py = h - barHeight - 20;
+
+                // Phase Noise Skirts
+                if (state.phaseNoise && color === '#34d399') {
+                    ctx.fillStyle = 'rgba(52, 211, 153, 0.15)';
+                    ctx.beginPath();
+                    ctx.moveTo(px - 15, h - 20);
+                    ctx.lineTo(px, py);
+                    ctx.lineTo(px + 15, h - 20);
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.moveTo(px, h - 20);
+                ctx.lineTo(px, py);
+                ctx.stroke();
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(px, py, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${label} (${Math.round(freq)}Hz)`, px, py - 8);
+            }
+
+            drawSpectralPeak(state.fin, 0.6, '#22d3ee', 'f_in');
+            drawSpectralPeak(state.flo, 0.4, '#fbbf24', 'f_LO');
+
+            switch (state.architecture) {
+                case 'multiplier':
+                    drawSpectralPeak(state.fin * 2, 0.85, '#34d399', '2*f_in');
+                    drawSpectralPeak(state.fin * 3, 0.3, '#34d399', '3*f_in');
+                    break;
+                case 'rf_upconverter':
+                    drawSpectralPeak(state.flo + state.fin, 0.8, '#34d399', 'f_LO+f_in');
+                    if (state.enableIMD3) drawSpectralPeak(2 * state.flo - state.fin, 0.35, '#c084fc', 'IMD3 Spur');
+                    break;
+                case 'rf_downconverter':
+                    drawSpectralPeak(Math.abs(state.flo - state.fin), 0.85, '#34d399', '|f_LO-f_in|');
+                    if (state.imageFilter === 'none') drawSpectralPeak(state.flo + state.fin, 0.4, '#f43f5e', 'Image Freq');
+                    break;
+                case 'vfd_rectifier_inverter': {
+                    const motorF = Math.min(state.fin, state.flo);
+                    drawSpectralPeak(motorF, 0.85, '#34d399', 'f_PWM');
+                    if (state.deadtime) {
+                        drawSpectralPeak(motorF * 5, 0.25, '#c084fc', '5th Harm');
+                        drawSpectralPeak(motorF * 7, 0.2, '#c084fc', '7th Harm');
+                    }
+                    break;
+                }
+                case 'freq_divider':
+                    drawSpectralPeak(state.fin / 2, 0.85, '#34d399', 'f_in/2');
+                    break;
+            }
+
+            // Filter Cutoff Threshold Line
+            const cutoffPx = (state.fcutoff / maxFreqSpan) * w;
+            ctx.strokeStyle = '#10b981';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(cutoffPx, 0); ctx.lineTo(cutoffPx, h - 20); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Axis line
+            ctx.strokeStyle = '#475569';
+            ctx.beginPath(); ctx.moveTo(0, h - 20); ctx.lineTo(w, h - 20); ctx.stroke();
+        }
+
+        function renderSVPWMCanvas() {
+            const canvas = document.getElementById('svpwmCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            const w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2, radius = w * 0.38;
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, w, h);
+
+            // Draw 6 Sector Hexagon Vectors (V1 to V6)
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI) / 3;
+                const vx = cx + radius * Math.cos(angle);
+                const vy = cy - radius * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(vx, vy);
+                ctx.stroke();
+
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = '10px monospace';
+                ctx.fillText(`V${i+1}`, vx + Math.cos(angle) * 10 - 5, vy - Math.sin(angle) * 10 + 4);
+            }
+
+            // Outer Hexagon
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI) / 3;
+                const vx = cx + radius * Math.cos(angle);
+                const vy = cy - radius * Math.sin(angle);
+                if (i === 0) ctx.moveTo(vx, vy);
+                else ctx.lineTo(vx, vy);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            // Rotating Voltage Vector V_ref
+            const theta = 2 * Math.PI * Math.min(state.fin, state.flo) * state.time;
+            const vrx = cx + radius * 0.75 * Math.cos(theta);
+            const vry = cy - radius * 0.75 * Math.sin(theta);
+
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(vrx, vry);
+            ctx.stroke();
+
+            ctx.fillStyle = '#34d399';
+            ctx.beginPath();
+            ctx.arc(vrx, vry, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function renderWaterfallCanvas() {
+            const canvas = document.getElementById('waterfallCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            const w = canvas.width, h = canvas.height;
+
+            // Generate spectral slice line
+            const currentSlice = new Array(Math.floor(w)).fill(0);
+            const targetFreq = state.fin;
+            const px = Math.floor((targetFreq / 150) * w);
+            if (px >= 0 && px < w) {
+                currentSlice[px] = 255; // Peak amplitude
+            }
+
+            state.waterfallHistory.unshift(currentSlice);
+            if (state.waterfallHistory.length > h) {
+                state.waterfallHistory.pop();
+            }
+
+            // Render Waterfall History Matrix
+            const imgData = ctx.createImageData(w, h);
+            for (let y = 0; y < state.waterfallHistory.length; y++) {
+                const row = state.waterfallHistory[y];
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const val = row[x] || 0;
+                    imgData.data[idx] = val ? 34 : 15;      // R
+                    imgData.data[idx + 1] = val ? 211 : 23;  // G
+                    imgData.data[idx + 2] = val ? 238 : 42;  // B
+                    imgData.data[idx + 3] = 255;             // Alpha
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+    </script>
+</body>
+</html>
+```
+
+```
